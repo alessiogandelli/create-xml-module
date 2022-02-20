@@ -1,0 +1,24 @@
+{
+  "name": "create_xml_module",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/utils/utils.js",
+  "scripts": {
+    "prepublishOnly": "npm run transpile",
+    "serve": "npm run transpile && npm run start",
+    "start": "node dist/raffelli.js",
+    "transpile": "tsc"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "dotenv": "^8.2.0",
+    "fs": "0.0.1-security",
+    "os": "^0.1.1",
+    "xmlbuilder": "^15.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^14.14.6"
+  }
+}
