@@ -1,15 +1,16 @@
 {
   "name": "create_xml_module",
-  "version": "1.0.0",
+  "version": "1.0.4",
   "description": "",
-  "main": "dist/utils/utils.js",
+  "main": "dist/utils.js",
+  "types": "dist/utils.d.ts",
   "scripts": {
     "prepublishOnly": "npm run transpile",
     "serve": "npm run transpile && npm run start",
     "start": "node dist/raffelli.js",
     "transpile": "tsc"
   },
-  "author": "",
+  "author": "alessiogandelli",
   "license": "ISC",
   "dependencies": {
     "axios": "^0.21.1",

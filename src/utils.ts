@@ -289,7 +289,7 @@ function getTotale(imposta: Imposta, imponibile: Imponibile): string{
 
 // "condizioni pagamento 1" lo vado a prendere nella fattura invece che 
 // "Modalità di pagamento" sempre dalla fattura 
-export async function fillPagamento(fattura: Fattura, urlmovimenti:string, ninoxToken:string){
+async function fillPagamento(fattura: Fattura, urlmovimenti:string, ninoxToken:string){
 
     let pagamento: Pagamento = {condizioni: '', dettaglio: [{ modalita: '', scadenza: '', importo: 0}] }
     if (fattura.movimenti && fattura.modalitaPagamento){
