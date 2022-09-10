@@ -1,2 +1,7 @@
 src/
 node_modules/
+prove.js
+corima.js
+raffelli.js
+.env
+fatture/

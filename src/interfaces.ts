@@ -72,10 +72,10 @@ export interface Dettaglio{
 }
 
 export interface Imponibile{
-    zero: number;
+    zero: {soldi: number[], natura: string[]};
     quattro: number;
     dieci: number;
-    ventidue: number;
+    ventidue: {soldi: number, show: boolean};
 }
 
 export interface Imposta{
