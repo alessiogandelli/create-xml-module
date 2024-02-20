@@ -171,11 +171,10 @@ async function fillDettaglio(fatture: any, nFattura: number, urldettaglio: strin
 
     let dettaglio: Dettaglio[] = []; 
 
-    //let dettIds: number[]= fatture['data'][nFattura]['fields']['Dettaglio articoli DDT'] //raffelli  gli id del dettaglio stanno nel dettaglio articoli ddt 
     let dettIds: number[]= fatture['data'][nFattura]['fields']['dettaglio fattura'] // gli id del dettaglio stanno nel dettaglio articoli ddt 
 
-    console.log('dettaglio ids' , dettIds)
 
+    // non c'è il dettaglio
     if(dettIds == undefined){
         console.log( fatture['data'][nFattura]['fields'])
     }
@@ -233,6 +232,8 @@ async function fillDettaglio(fatture: any, nFattura: number, urldettaglio: strin
 
                 console.log('um', um)
 
+
+
                 let prezzoun: number = await fillPrezzo(dett);
              
                 let desc = dett['fields']['descrizione']
@@ -260,53 +261,14 @@ async function fillDettaglio(fatture: any, nFattura: number, urldettaglio: strin
     console.log('dettaglio')
     return dettaglio
 }
-// costuisce la descrizione per il dettaglio
-// async function fillDescrizione(dett: any, urllistino:string, urlddt:string, ninoxToken: string): Promise<string> {
-//     let ddtID: any = dett['fields']['DDT']
-//     let dataddt: string = '';
-//     let codicearticolo: any = '';
-//     let descrizionearticolo: string = '';
-//     let descrizione: string = '';
-//     let nddt = ''
-//     const idArticolo = dett['fields']['Listino Articoli']
 
-//     let listinoRaw: any = await get(urllistino+'/'+idArticolo, ninoxToken);
-//     let articolo: any = listinoRaw['data']['fields']
-
-//     let ddtRaw: any = await get(urlddt+'/'+ddtID, ninoxToken);
-//     let ddt: any = ddtRaw['data']['fields']
-
-
-//     descrizionearticolo = articolo['Descrizione Articolo'].trim()
-//     codicearticolo = articolo['Codice articolo']
-//     nddt = ddt['DDT nr']
-//     dataddt = ddt['Data DDT'].trim()
-
-//     if (!codicearticolo) {
-//         codicearticolo = ''
-//     }
-
-//     descrizione = nddt + " " + dataddt + " " + codicearticolo + " " + descrizionearticolo
-//     return descrizione.trim()
-// }
 
 // ritorna il prezzo unitario dei vari elementi 
 async function fillPrezzo(dett: any): Promise<number> {
 
     let imponibile: number = 0;
-    // const idArticolo = dett['fields']['Listino Articoli']
-    // let listinoRaw: any = await get(urllistino+'/'+idArticolo);
-    // let articolo: any = listinoRaw['data']['fields']
 
-    // const imponibileArticolo = articolo
-
-    // if (imponibileArticolo) {
-    //     imponibile = imponibileArticolo
-    // } else {
-    //     imponibile = 0;
-    // }
-
-    imponibile = dett['fields']['prezzo fattura'] //raffelli
+    imponibile = dett['fields']['importo cad'] //raffelli
     //imponibile = dett['fields']['importo']        //corima
 
     if(!imponibile){
@@ -507,6 +469,15 @@ function buildxml(fattura:Fattura, dettaglio:Dettaglio[], committente:Committent
        
  /*dettaglio */                 .ele('DatiBeniServizi')
                                     dettaglio.forEach((dett , i)=> {
+            // se non c'è unità di misura descrittia
+                                        if( dett.um == undefined){
+                                            xml = xml.ele('DettaglioLinee')
+                                                    .ele('NumeroLinea').text(i+1+"").up()
+                                                    .ele('Descrizione').text(dett.descrizione).up()
+                                                    .ele('PrezzoUnitario').text(dett.prezzounitario.toFixed(2)).up()
+                                                    .ele('PrezzoTotale').text(dett.prezzototale.toFixed(2)).up()
+            // riga contabile altrimenti 
+                                        }else{
                                         xml = xml.ele('DettaglioLinee')
                                                                 .ele('NumeroLinea').text(i+1+"").up()
                                                                 .ele('Descrizione').text(dett.descrizione).up()
@@ -514,7 +485,7 @@ function buildxml(fattura:Fattura, dettaglio:Dettaglio[], committente:Committent
                                                                 .ele('UnitaMisura').text(dett.um).up()
                                                                 .ele('PrezzoUnitario').text(dett.prezzounitario.toFixed(2)).up()
                                                                 .ele('PrezzoTotale').text(dett.prezzototale.toFixed(2)).up()
-                                                                
+                                      } 
                                         if(dett.codiceiva){
                                                     xml = xml.ele('AliquotaIVA').text(dett.aliquotaiva.toFixed(2)).up()
                                                                 .ele('Natura').text(dett.codiceiva).up().up()
