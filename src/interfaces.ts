@@ -33,6 +33,7 @@ export interface Committente{
     codicefiscalecc: string;
     piva:string;
     indirizzocc: string;
+    numCivico: string;
     capcc: string;
     comunecc: string;
     provinciacc: string;

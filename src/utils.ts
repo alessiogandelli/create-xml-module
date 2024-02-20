@@ -64,8 +64,10 @@ function fillFattura(fatture: any, nFattura: number): Fattura | undefined {
     let fattura: Fattura | undefined = undefined;
     let imponibile: Imponibile = {zero:{soldi:[], natura:[]}, dieci:0, quattro: 0, ventidue: {soldi:0, show:false}};
     let imposta: Imposta = {zero:0, dieci:0, quattro: 0, ventidue: 0}
+    
 
-    fattura = { tipodocumento: 'TD01', divisa: 'EUR', data: rawfatt['DATA FATT.'].trim() as string, 
+
+    fattura = { tipodocumento: rawfatt['tipo documento'].slice(0,4), divisa: 'EUR', data: rawfatt['DATA FATT.'].trim() as string, 
                 numero: rawfatt['nr fatt.'], causale: '', riferimentonumlinea: '', 
                 iddocumento: '987657', numitem: '1', esigibilitaiva: 'D', imponibilefattura: imponibile,
                 imposta: imposta, totale: '0', movimenti: rawfatt['MOVIMENTI MONETARI'], 
@@ -98,6 +100,7 @@ async function fillPersona( fatture: any, nFattura: number, urlclienti:string, n
     let cf: string = '';
     let piva: string = '';
     let via: string = '';
+    let nCivico: string = '';
     let cap: string = '';
     let comune: string = '';
     let provincia: string = '';
@@ -130,6 +133,7 @@ async function fillPersona( fatture: any, nFattura: number, urlclienti:string, n
     cf = cliente['Cod. Fiscale']?.trim();
     piva = cliente['PARTITA IVA']; // priorita
     via = cliente['VIA'].trim()
+    nCivico = cliente['nr civico']
     idpaese = cliente['ELENCO PAESI']
     sdi = cliente['CODICE SDI']
     pec = cliente['PEC']
@@ -137,6 +141,9 @@ async function fillPersona( fatture: any, nFattura: number, urlclienti:string, n
     comune = cliente['PAESE']
     cap = cliente['CAP']
 
+    if(nCivico == undefined){
+        nCivico = ' '
+    }
 
 
     // se non ha la pec metto una stringa vuota 
@@ -155,7 +162,7 @@ async function fillPersona( fatture: any, nFattura: number, urlclienti:string, n
     // comune = paese['PAESE']
 
 
-    committente = { denominazione: denominazione, codicefiscalecc: cf, indirizzocc: via, capcc: cap, provinciacc: provincia, comunecc: comune, nazionecc: nazione, piva: piva, sdi:sdi, pec:pec }
+    committente = { denominazione: denominazione, codicefiscalecc: cf, indirizzocc: via, numCivico: nCivico, capcc: cap, provinciacc: provincia, comunecc: comune, nazionecc: nazione, piva: piva, sdi:sdi, pec:pec }
     
     if(committente){    
         console.log('committente ok ')
@@ -453,6 +460,7 @@ function buildxml(fattura:Fattura, dettaglio:Dettaglio[], committente:Committent
                                             .ele('Denominazione').text(committente.denominazione).up().up().up()
                                     .ele('Sede')
                                         .ele('Indirizzo').text(committente.indirizzocc).up()
+                                        .ele('NumeroCivico').text(committente.numCivico).up()
                                         .ele('CAP').text((committente.capcc)).up()
                                         .ele('Comune').text(committente.comunecc).up()
                                         .ele('Provincia').text(committente.provinciacc).up()
