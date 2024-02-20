@@ -1,6 +1,6 @@
 {
   "name": "create_xml_module",
-  "version": "1.0.5",
+  "version": "1.2.0",
   "description": "",
   "main": "dist/utils.js",
   "types": "dist/utils.d.ts",
@@ -8,7 +8,9 @@
     "prepublishOnly": "npm run transpile",
     "serve": "npm run transpile && npm run start",
     "start": "node dist/raffelli.js",
-    "transpile": "tsc"
+    "transpile": "tsc",
+    "corima" : "tsc && node corima.js",
+    "raffelli" : "tsc && node raffelli.js"
   },
   "author": "alessiogandelli",
   "license": "ISC",

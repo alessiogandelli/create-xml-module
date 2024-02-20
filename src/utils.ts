@@ -71,6 +71,8 @@ function fillFattura(fatture: any, nFattura: number): Fattura | undefined {
                 imposta: imposta, totale: '0', movimenti: rawfatt['MOVIMENTI MONETARI'], 
                 condizioniPagamento: rawfatt['Condizioni pagamento fattura'], 
                 modalitaPagamento: rawfatt['Modalità pagamento fattura'] }
+    
+
 
 
     if( fattura == undefined){
@@ -85,10 +87,14 @@ function fillFattura(fatture: any, nFattura: number): Fattura | undefined {
 async function fillPersona( fatture: any, nFattura: number, urlclienti:string, ninoxToken:string): Promise<Committente> {
 
 
-   // let idCliente: any = fatture['data'][nFattura]['fields']['anagr. CLIENTI']; //raffelli 
-    let idCliente: any = fatture['data'][nFattura]['fields']['Anagrafica CLIENTI']; // corima
+    let idCliente: any = fatture['data'][nFattura]['fields']['Anagrafiche']; //raffelli 
+
+    console.log(fatture['data'][nFattura]['fields'])
+    //let idCliente: any = fatture['data'][nFattura]['fields']['Anagrafica CLIENTI']; // corima
     
     let denominazione: string = '';
+    let nome : string = '';
+    let cognome: string = '';
     let cf: string = '';
     let piva: string = '';
     let via: string = '';
@@ -101,16 +107,24 @@ async function fillPersona( fatture: any, nFattura: number, urlclienti:string, n
     let pec: string = '';
     let committente: Committente;
 
-    console.log(idCliente)
+    console.log('idcliente', idCliente)
 
     // dati cliente
     //const clienteRaw: any = await get(urlclienti +'/'+ idCliente, ninoxToken)
     const clienteRaw: any = await get(urlclienti + `?sinceId=${idCliente-1}&perPage=1`, ninoxToken)
     const cliente = clienteRaw['data'][0]['fields']
-    console.log(cliente)
+    
 
     //denominazione = cliente['CLIENTE'].trim(); //raffelli
     denominazione = cliente['Denominazione'].trim(); //corima
+
+    if (cliente['NOME'] && cliente['COGNOME']){
+        nome = cliente['NOME'].trim();
+        cognome = cliente['COGNOME'].trim();
+    }
+    
+    console.log(cliente)
+    
 
 
     cf = cliente['Cod. Fiscale']?.trim();
@@ -122,6 +136,8 @@ async function fillPersona( fatture: any, nFattura: number, urlclienti:string, n
     provincia = cliente['PV']
     comune = cliente['PAESE']
     cap = cliente['CAP']
+
+
 
     // se non ha la pec metto una stringa vuota 
     if(!pec)
@@ -160,7 +176,10 @@ async function fillDettaglio(fatture: any, nFattura: number, urldettaglio: strin
 
     console.log('dettaglio ids' , dettIds)
 
-    if(dettIds.length == 0){
+    if(dettIds == undefined){
+        console.log( fatture['data'][nFattura]['fields'])
+    }
+    else if(dettIds.length == 0){
         console.log('non cè il dettaglio')
     }
 
@@ -168,7 +187,8 @@ async function fillDettaglio(fatture: any, nFattura: number, urldettaglio: strin
         
 
    // qui si aggiusta il centro di costo 
-    //if (fatture['data'][nFattura]['fields']['Dettaglio articoli DDT'] != undefined) { //raffelli
+
+   // caso dettaglio fattura vendita 
     if (fatture['data'][nFattura]['fields']['dettaglio fattura'] != undefined) {
         
 
@@ -182,8 +202,9 @@ async function fillDettaglio(fatture: any, nFattura: number, urldettaglio: strin
                 let codiceIva = undefined
                 let qta: number = 1
                 let ivaArticolo = 0
+                let um: string = ''
 
-//TODO magheggio per quando non c'è l'iva
+        //TODO magheggio per quando non c'è l'iva
                 if (dett['fields']['IVA ARTICOLO']){
                      ivaArticolo = dett['fields']['IVA ARTICOLO']
                 }else if(dett['fields']['TIPO IVA DIV 4,10,22']){
@@ -202,17 +223,25 @@ async function fillDettaglio(fatture: any, nFattura: number, urldettaglio: strin
                     console.log('codice iva ', codiceIva)
                     ivaArticolo = 0
                 }
+
                 if(dett['fields']['Quantità']){
                     qta = (dett['fields']['Quantità']);
                 }
+
+                //TODO unita di misura 
+                um = dett['fields']['u.m.']
+
+                console.log('um', um)
+
                 let prezzoun: number = await fillPrezzo(dett);
              
                 let desc = dett['fields']['descrizione']
                 //let desc = await fillDescrizione(dett, urllistino, urlddt, ninoxToken) as string
+                console.log('descrizione', desc)
                 
                 
                 res({
-                    dettaglio: { descrizione: desc, quantita: qta, prezzounitario: prezzoun, aliquotaiva: ivaArticolo, prezzototale: qta * prezzoun, codiceiva: codiceIva },                  
+                    dettaglio: { descrizione: desc, quantita: qta, um:um,  prezzounitario: prezzoun, aliquotaiva: ivaArticolo, prezzototale: qta * prezzoun, codiceiva: codiceIva },                  
                 });
         })));
 
@@ -221,8 +250,11 @@ async function fillDettaglio(fatture: any, nFattura: number, urldettaglio: strin
         dettaglio = res.map(x => x.dettaglio)
         
        
-    } else {
-        console.log('il dettaglio non è definito')
+    } else if('formulario' != undefined){
+        console.log('formulario ')
+    }
+    else{
+        console.log('il dettaglio non è definito nemmeno il formulario')
     }
 
     console.log('dettaglio')
@@ -274,8 +306,8 @@ async function fillPrezzo(dett: any): Promise<number> {
     //     imponibile = 0;
     // }
 
-    //imponibile = dett['fields']['prezzo fattura'] //raffelli
-    imponibile = dett['fields']['importo']
+    imponibile = dett['fields']['prezzo fattura'] //raffelli
+    //imponibile = dett['fields']['importo']        //corima
 
     if(!imponibile){
         imponibile = 0
@@ -338,6 +370,7 @@ async function fillPagamento(fattura: Fattura, urlmovimenti:string, ninoxToken:s
 
     let pagamento: Pagamento = {condizioni: '', dettaglio: [{ modalita: '', scadenza: '', importo: 0}] }
 
+    console.log('fattura pagamento', fattura.modalitaPagamento)
 
     if (fattura.movimenti && fattura.modalitaPagamento){
 
@@ -352,6 +385,8 @@ async function fillPagamento(fattura: Fattura, urlmovimenti:string, ninoxToken:s
         })));
 
         const res = await Promise.all(promises);
+
+        console.log('res', res)
 
 
         pagamento = {
@@ -476,6 +511,7 @@ function buildxml(fattura:Fattura, dettaglio:Dettaglio[], committente:Committent
                                                                 .ele('NumeroLinea').text(i+1+"").up()
                                                                 .ele('Descrizione').text(dett.descrizione).up()
                                                                 .ele('Quantita').text(dett.quantita.toFixed(2)).up()
+                                                                .ele('UnitaMisura').text(dett.um).up()
                                                                 .ele('PrezzoUnitario').text(dett.prezzounitario.toFixed(2)).up()
                                                                 .ele('PrezzoTotale').text(dett.prezzototale.toFixed(2)).up()
                                                                 

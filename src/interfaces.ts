@@ -65,6 +65,7 @@ export interface Prestatore{
 export interface Dettaglio{
     descrizione: string;
     quantita: number;
+    um: string;
     prezzounitario: number;
     prezzototale: number;
     aliquotaiva: number;
