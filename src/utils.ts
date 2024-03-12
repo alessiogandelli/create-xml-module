@@ -276,6 +276,8 @@ async function fillPrezzo(dett: any): Promise<number> {
 
     let imponibile: number = 0;
 
+    console.log('prezzo', dett['fields'])
+
     imponibile = dett['fields']['importo cad'] //raffelli
     //imponibile = dett['fields']['importo']        //corima
 
@@ -408,9 +410,8 @@ async function saveFileLocal(xml:XMLElement, nFattura:string){
 function buildxml(fattura:Fattura, dettaglio:Dettaglio[], committente:Committente, prestatore:Prestatore,  pagamento: Pagamento, nFattura:number):XMLElement{
  
 
-
-    let xml = builder.create('p:FatturaElettronica',{ encoding: 'UTF-8'})
-                                                    .att('xmlns:p', 'http://ivaservizi.agenziaentrate.gov.it/docs/xsd/fatture/v1.2')
+    let xml = builder.create('ns3:FatturaElettronica',{ encoding: 'UTF-8'})
+                                                    .att('xmlns:ns3', 'http://ivaservizi.agenziaentrate.gov.it/docs/xsd/fatture/v1.2')
                                                     .att('versione', 'FPR12')
                             .ele('FatturaElettronicaHeader')
                                 .ele('DatiTrasmissione')

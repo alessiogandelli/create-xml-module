@@ -15,7 +15,7 @@ const urlVerify = `https://api.fatturapa.com/ws/V10.svc/rest/verify/${apiKey}`; 
 const urluploadStart = `https://api.fatturapa.com/ws/V10.svc/rest/UploadStart/${apiKey}`;
 
 //load fattura
-const fattXml =  fs.readFileSync('fatture/fattura36.xml', 'utf8')
+const fattXml =  fs.readFileSync('fatture/fattura38.xml', 'utf8')
 const blob = Buffer.from(fattXml, 'utf-8');
 // const formData = new FormData()
 // formData.append('file', blob, {
