@@ -24,10 +24,12 @@ export async function uploadFileAPI( fattXml: string) {
     let res = (await get(urluploadStart))
     let uri = res.data.Complete
     let name:string = res.data.Name
-    urluploadStop = urluploadStop+name
     console.log(urluploadStop)
     console.log('uri',uri)
     const blob = Buffer.from(fattXml, 'utf-8');
+
+    console.log('blob', blob)
+    console.log('fattura', fattXml)
 
     
 
@@ -55,7 +57,7 @@ export async function uploadFileAPI( fattXml: string) {
 
     //upload stop
     console.log('urluploadStop', urluploadStop)
-    let resStop = (await get(urluploadStop))
+    let resStop = (await get(urluploadStop+name))
 
 }
 
