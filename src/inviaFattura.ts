@@ -13,7 +13,7 @@ const urluploadStart = `https://api.fatturapa.com/ws/V10.svc/rest/UploadStart/${
 let urluploadStop = `https://api.fatturapa.com/ws/V10.svc/rest/UploadStop1/${apiKey}/`; // c'è da aggiungere /name sotto 
 
 //load fattura da file e carica xml in buffer
-const fattXml =  fs.readFileSync('fatture/fattura36funziona.xml', 'utf8')
+//const fattXml =  fs.readFileSync('fatture/fattura36funziona.xml', 'utf8')
 
 
 
