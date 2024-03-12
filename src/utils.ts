@@ -120,6 +120,7 @@ async function fillPersona( fatture: any, nFattura: number, urlclienti:string, n
 
     //denominazione = cliente['CLIENTE'].trim(); //raffelli
     denominazione = cliente['Denominazione'].trim(); //corima
+    // remove  &amp; and charaters that can break the xml
 
     if (cliente['NOME'] && cliente['COGNOME']){
         nome = cliente['NOME'].trim();
