@@ -1,50 +1,35 @@
 import FormData from 'form-data';
-
 import axios, { AxiosRequestConfig } from 'axios'
 import dotenv from 'dotenv'
 import fs from 'fs'
-const xml2js = require('xml2js'); // You'll need to install xml2js if you haven't already
-
+const xml2js = require('xml2js');
 dotenv.config()
 
 const apiKey = process.env.FATTURA_PA_API_KEY
 
-
+// url per le chiamate
 const urlVerify = `https://api.fatturapa.com/ws/V10.svc/rest/verify/${apiKey}`; // Replace 'yourdomain.com' with the actual domain
-
 const urluploadStart = `https://api.fatturapa.com/ws/V10.svc/rest/UploadStart/${apiKey}`;
+let urluploadStop = `https://api.fatturapa.com/ws/V10.svc/rest/UploadStop1/${apiKey}/`; // c'è da aggiungere /name sotto 
 
-//load fattura
-const fattXml =  fs.readFileSync('fatture/fattura38.xml', 'utf8')
-const blob = Buffer.from(fattXml, 'utf-8');
-// const formData = new FormData()
-// formData.append('file', blob, {
-//     filename: 'fattura.xml',
-//     contentType: 'application/xml',
-//     knownLength: Buffer.byteLength(fattXml)
-//   });
-
-//console.log('data', formData)
-
-console.log('xmlString', fattXml)
-
-console.log('blob', blob)
+//load fattura da file e carica xml in buffer
+const fattXml =  fs.readFileSync('fatture/fattura36funziona.xml', 'utf8')
 
 
 
-async function uploadFile(uriupload: string) {
 
-    let res = (await get(uriupload))
+
+export async function uploadFileAPI( fattXml: string) {
+
+    let res = (await get(urluploadStart))
     let uri = res.data.Complete
-    let name = res.data.Name
+    let name:string = res.data.Name
+    urluploadStop = urluploadStop+name
+    console.log(urluploadStop)
     console.log('uri',uri)
-    
-    // const blob = new Blob([fattXml], { type: 'application/xml' });
-    // console.log('blob',blob)
-    // console.log('blob',blob.size)
-      
-    //post file with axios 
+    const blob = Buffer.from(fattXml, 'utf-8');
 
+    
 
     const headers = {
         "x-ms-blob-type": "BlockBlob",
@@ -56,7 +41,6 @@ async function uploadFile(uriupload: string) {
         };
 
 
-    //console.log('formData',formData.getHeaders())
 
     axios.put(uri, blob, {
         headers: headers
@@ -70,7 +54,6 @@ async function uploadFile(uriupload: string) {
 
 
     //upload stop
-    const urluploadStop = `https://api.fatturapa.com/ws/V10.svc/rest/UploadStop1/${apiKey}/${name}`;
     console.log('urluploadStop', urluploadStop)
     let resStop = (await get(urluploadStop))
 
@@ -97,4 +80,4 @@ async function get(url: string):Promise<AxiosRequestConfig>{
 
 
 
-uploadFile(urluploadStart)
+//uploadFileAPI(fattXml)

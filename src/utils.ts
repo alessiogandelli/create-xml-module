@@ -6,6 +6,7 @@ import axios, { AxiosRequestConfig } from 'axios'
 var lodash = require('lodash');
 const {Storage} = require('@google-cloud/storage');
 const storage = new Storage();
+import {uploadFileAPI} from './inviaFattura'
 
 
 
@@ -43,7 +44,13 @@ export default async function main(inizio:number, fine:number, urlfatture:string
                 if (local) {
                     await saveFileLocal(xml, fattura.numero)
                 } else {
-                    await saveFileOnBucket(xml, fattura.numero, GCLOUD_STORAGE_BUCKET)
+                    //await saveFileOnBucket(xml, fattura.numero, GCLOUD_STORAGE_BUCKET)
+                    try{
+                        uploadFileAPI(xml.toString())
+                    }
+                    catch (error){
+                        console.log('errore', error)
+                    }
 
                 }
                 
