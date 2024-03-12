@@ -44,9 +44,10 @@ export default async function main(inizio:number, fine:number, urlfatture:string
                 if (local) {
                     await saveFileLocal(xml, fattura.numero)
                 } else {
-                    //await saveFileOnBucket(xml, fattura.numero, GCLOUD_STORAGE_BUCKET)
+                    await saveFileOnBucket(xml, fattura.numero, GCLOUD_STORAGE_BUCKET)
                     try{
                         uploadFileAPI(xml.toString())
+                        
                     }
                     catch (error){
                         console.log('errore', error)
@@ -415,8 +416,6 @@ async function saveFileLocal(xml:XMLElement, nFattura:string){
 }
 
 function buildxml(fattura:Fattura, dettaglio:Dettaglio[], committente:Committente, prestatore:Prestatore,  pagamento: Pagamento, nFattura:number):XMLElement{
- 
-
     let xml = builder.create('ns3:FatturaElettronica',{ encoding: 'UTF-8'})
                                                     .att('xmlns:ns3', 'http://ivaservizi.agenziaentrate.gov.it/docs/xsd/fatture/v1.2')
                                                     .att('versione', 'FPR12')
@@ -543,25 +542,25 @@ function buildxml(fattura:Fattura, dettaglio:Dettaglio[], committente:Committent
 
 
 // pagamento  
-            xml = xml.ele('DatiPagamento')
-                        .ele('CondizioniPagamento').text(pagamento.condizioni).up()
-                      
-            pagamento.dettaglio.forEach(el =>{
-                xml = xml.ele('DettaglioPagamento')
-                    .ele('ModalitaPagamento').text(el.modalita).up()
-                    .ele('DataScadenzaPagamento').text(el.scadenza.substring(0,10)).up()
-                    
+                                xml = xml.ele('DatiPagamento')
+                                            .ele('CondizioniPagamento').text(pagamento.condizioni).up()
+                                        
+                                pagamento.dettaglio.forEach(el =>{
+                                    xml = xml.ele('DettaglioPagamento')
+                                        .ele('ModalitaPagamento').text(el.modalita).up()
+                                        .ele('DataScadenzaPagamento').text(el.scadenza.substring(0,10)).up()
+                                        
 
-                    if(el.modalita == 'MP05'){
-                        xml =  xml.ele('ImportoPagamento').text(el.importo.toFixed(2)).up()
-                                  .ele('IBAN').text(prestatore.IBAN).up().up()
-                    
-                    }else{
-                        xml =  xml.ele('ImportoPagamento').text(el.importo.toFixed(2)).up().up()
+                                        if(el.modalita == 'MP05'){
+                                            xml =  xml.ele('ImportoPagamento').text(el.importo.toFixed(2)).up()
+                                                    .ele('IBAN').text(prestatore.IBAN).up().up()
+                                        
+                                        }else{
+                                            xml =  xml.ele('ImportoPagamento').text(el.importo.toFixed(2)).up().up()
 
-                    }
+                                        }
 
-            })
+                                })
 
 
 
