@@ -5,3 +5,5 @@ corima.js
 raffelli.js
 .env
 fatture/
+dist/validate.js
+dist/validate.d.ts
