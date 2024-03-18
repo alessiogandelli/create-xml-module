@@ -7,7 +7,7 @@ var lodash = require('lodash');
 const {Storage} = require('@google-cloud/storage');
 const storage = new Storage();
 import {uploadFileAPI, UploadStop1, UploadStart} from './inviaFattura'
-import { validatore } from './validate'
+//import { validatore } from './validate'
 import logger from  'euberlog'
 
 
@@ -48,28 +48,24 @@ export default async function main(inizio:number, fine:number, urlfatture:string
                 
                 if (local) {
                     await saveFileLocal(xml, fattura.numero)
-                    const isvalid = await validatore(xml.toString(), fattura.numero)
-                    if (isvalid){
-                        logger.info('entro qui ' )
-                        await uploadFileAPI(xml.toString())
+                    //const isvalid = await validatore(xml.toString(), fattura.numero)
+                   
+                    logger.info('salvo il file localmente ' )
+                    await uploadFileAPI(xml.toString())
                         
 
-                    }else{
-                        logger.warning('errore di validazione')
-                    }
+                
                 } else {
                    // await saveFileOnBucket(xml, fattura.numero, GCLOUD_STORAGE_BUCKET)
                     try{
-                        if (await validatore(xml.toString(), fattura.numero)){
-
-                        }
+                 
                         uploadFileAPI(xml.toString())
 
                         
                         
                     }
                     catch (error){
-                        console.log('errore', error)
+                        logger.error('errore', error)
                     }
 
                 }

@@ -62,12 +62,17 @@ export async function uploadFileAPI( fattXml: string) {
         logger.debug('data',response.data);
         logger.info('file uploaded')
     }).catch((error) => {
-        logger.error(error);
-        console.log('error', error)
+        logger.error('error in upload stop')
+        logger.error(error.message)
         logger.error('file not uploaded')
     });
 
-    await UploadStop1()
+    try {
+        await UploadStop1()
+    }
+    catch (error : any) {
+        logger.error('error in upload stop')
+    }
 
 
 }
