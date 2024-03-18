@@ -6,7 +6,9 @@ import axios, { AxiosRequestConfig } from 'axios'
 var lodash = require('lodash');
 const {Storage} = require('@google-cloud/storage');
 const storage = new Storage();
-import {uploadFileAPI} from './inviaFattura'
+import {uploadFileAPI, UploadStop1, UploadStart} from './inviaFattura'
+import { validatore } from './validate'
+import logger from  'euberlog'
 
 
 
@@ -16,6 +18,8 @@ export default async function main(inizio:number, fine:number, urlfatture:string
     console.log('ertoken',ninoxToken)
 
     let fatture: any = await get(urlfatture+`?sinceId=${inizio-1}&perPage=${fine-inizio+1}`, ninoxToken); //pesco le fatture richieste 
+    
+    await UploadStart()
 
     for (let i = 0; i < (fatture['data']).length; i++) { // per ogni fattura
         let fattura: Fattura | undefined;
@@ -25,6 +29,7 @@ export default async function main(inizio:number, fine:number, urlfatture:string
         
         
             if(fattura){
+                logger.info('fattura', fattura.numero)
                 
                 let persona: Committente = await fillPersona(fatture, i, urlclienti, ninoxToken );
                 let dettaglio: Dettaglio[] = await fillDettaglio(fatture, i, urldettaglio, urllistino, ninoxToken);
@@ -43,10 +48,23 @@ export default async function main(inizio:number, fine:number, urlfatture:string
                 
                 if (local) {
                     await saveFileLocal(xml, fattura.numero)
+                    const isvalid = await validatore(xml.toString(), fattura.numero)
+                    if (isvalid){
+                        logger.info('entro qui ' )
+                        await uploadFileAPI(xml.toString())
+                        
+
+                    }else{
+                        logger.warning('errore di validazione')
+                    }
                 } else {
-                    await saveFileOnBucket(xml, fattura.numero, GCLOUD_STORAGE_BUCKET)
+                   // await saveFileOnBucket(xml, fattura.numero, GCLOUD_STORAGE_BUCKET)
                     try{
-                        uploadFileAPI(xml.toString())
+                        if (await validatore(xml.toString(), fattura.numero)){
+                            
+                            uploadFileAPI(xml.toString())
+                        }
+                        
                         
                     }
                     catch (error){
@@ -61,7 +79,9 @@ export default async function main(inizio:number, fine:number, urlfatture:string
             console.log('proprio qui non va con fattura', inizio+i)
         }
     }  
+
     
+
 }
 
 
@@ -88,7 +108,7 @@ function fillFattura(fatture: any, nFattura: number): Fattura | undefined {
     if( fattura == undefined){
         console.log('fattura non definita')
     }else{
-        console.log('fattura ', rawfatt['nr fatt.'])
+        //console.log('fattura ', rawfatt['nr fatt.'])
     }
 
     return fattura
@@ -99,7 +119,7 @@ async function fillPersona( fatture: any, nFattura: number, urlclienti:string, n
 
     let idCliente: any = fatture['data'][nFattura]['fields']['Anagrafiche']; //raffelli 
 
-    console.log(fatture['data'][nFattura]['fields'])
+   // console.log(fatture['data'][nFattura]['fields'])
     //let idCliente: any = fatture['data'][nFattura]['fields']['Anagrafica CLIENTI']; // corima
     
     let denominazione: string = '';
@@ -135,7 +155,7 @@ async function fillPersona( fatture: any, nFattura: number, urlclienti:string, n
         cognome = cliente['COGNOME'].trim();
     }
     
-    console.log(cliente)
+   // console.log(cliente)
     
 
 
@@ -192,7 +212,7 @@ async function fillDettaglio(fatture: any, nFattura: number, urldettaglio: strin
 
     // non c'è il dettaglio
     if(dettIds == undefined){
-        console.log( fatture['data'][nFattura]['fields'])
+        //console.log( fatture['data'][nFattura]['fields'])
     }
     else if(dettIds.length == 0){
         console.log('non cè il dettaglio')
@@ -246,7 +266,7 @@ async function fillDettaglio(fatture: any, nFattura: number, urldettaglio: strin
                 //TODO unita di misura 
                 um = dett['fields']['u.m.']
 
-                console.log('um', um)
+                //console.log('um', um)
 
 
 
@@ -254,7 +274,7 @@ async function fillDettaglio(fatture: any, nFattura: number, urldettaglio: strin
              
                 let desc = dett['fields']['descrizione']
                 //let desc = await fillDescrizione(dett, urllistino, urlddt, ninoxToken) as string
-                console.log('descrizione', desc)
+                //console.log('descrizione', desc)
                 
                 
                 res({
@@ -284,7 +304,7 @@ async function fillPrezzo(dett: any): Promise<number> {
 
     let imponibile: number = 0;
 
-    console.log('prezzo', dett['fields'])
+   // console.log('prezzo', dett['fields'])
 
     imponibile = dett['fields']['importo cad'] //raffelli
     //imponibile = dett['fields']['importo']        //corima
@@ -319,7 +339,7 @@ function getImponibile(dettaglio: Dettaglio[]): Imponibile {
 
         
     })
-    console.log(imponibile)
+    //console.log(imponibile)
  
     
     return imponibile;
@@ -366,7 +386,7 @@ async function fillPagamento(fattura: Fattura, urlmovimenti:string, ninoxToken:s
 
         const res = await Promise.all(promises);
 
-        console.log('res', res)
+        //console.log('res', res)
 
 
         pagamento = {

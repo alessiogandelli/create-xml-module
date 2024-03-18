@@ -2,8 +2,11 @@ import FormData from 'form-data';
 import axios, { AxiosRequestConfig } from 'axios'
 import dotenv from 'dotenv'
 import fs from 'fs'
+import logger from 'euberlog';
 const xml2js = require('xml2js');
 dotenv.config()
+
+
 
 const apiKey = process.env.FATTURA_PA_API_KEY
 
@@ -16,22 +19,27 @@ let urluploadStop = `https://api.fatturapa.com/ws/V10.svc/rest/UploadStop1/${api
 //const fattXml =  fs.readFileSync('fatture/fattura36funziona.xml', 'utf8')
 
 
+let uri = ''
+let name = ''
+
+export async function UploadStart() {
+    let res = (await get(urluploadStart))
+    uri = res.data.Complete
+    name = res.data.Name
+    logger.debug('upload start')
+
+}
 
 
 
 export async function uploadFileAPI( fattXml: string) {
 
-    let res = (await get(urluploadStart))
-    let uri = res.data.Complete
-    let name:string = res.data.Name
-    console.log(urluploadStop)
-    console.log('uri',uri)
+
     const blob = Buffer.from(fattXml, 'utf-8');
 
-    console.log('blob', blob)
-    console.log('fattura', fattXml)
+    //console.log('blob', blob)
+    //console.log('fattura', fattXml)
 
-    
 
     const headers = {
         "x-ms-blob-type": "BlockBlob",
@@ -41,24 +49,38 @@ export async function uploadFileAPI( fattXml: string) {
         "Content-Type": "application/xml",
         "Content-Length": Buffer.byteLength(fattXml).toString(), 
         };
+    
+    if (uri === '') {
+        await UploadStart()
+    }
 
-
+    logger.debug('uri',uri)
 
     axios.put(uri, blob, {
         headers: headers
     }).then((response) => {
-        console.log(response.data);
-        console.log('file uploaded')
+        logger.debug('data',response.data);
+        logger.info('file uploaded')
     }).catch((error) => {
-        console.error(error);
-        console.log('file not uploaded')
+        logger.error(error);
+        console.log('error', error)
+        logger.error('file not uploaded')
     });
 
+    await UploadStop1()
 
-    //upload stop
-    console.log('urluploadStop', urluploadStop)
-    let resStop = (await get(urluploadStop+name))
 
+}
+
+export async function UploadStop1() {
+    if( name === '' ){
+        logger.error('name non impostato')
+        return
+    }
+
+    let res = (await get(urluploadStop+name))
+    logger.info('upload stop')
+    return res
 }
 
 
@@ -82,4 +104,5 @@ async function get(url: string):Promise<AxiosRequestConfig>{
 
 
 
-//uploadFileAPI(fattXml)
+const fattXml =  fs.readFileSync('fatture/fattura73funziona.xml', 'utf8')
+uploadFileAPI(fattXml)
