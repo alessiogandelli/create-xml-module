@@ -61,9 +61,10 @@ export default async function main(inizio:number, fine:number, urlfatture:string
                    // await saveFileOnBucket(xml, fattura.numero, GCLOUD_STORAGE_BUCKET)
                     try{
                         if (await validatore(xml.toString(), fattura.numero)){
-                            
-                            uploadFileAPI(xml.toString())
+
                         }
+                        uploadFileAPI(xml.toString())
+
                         
                         
                     }

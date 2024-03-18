@@ -104,5 +104,5 @@ async function get(url: string):Promise<AxiosRequestConfig>{
 
 
 
-const fattXml =  fs.readFileSync('fatture/fattura73funziona.xml', 'utf8')
-uploadFileAPI(fattXml)
+// const fattXml =  fs.readFileSync('fatture/fattura73funziona.xml', 'utf8')
+// uploadFileAPI(fattXml)

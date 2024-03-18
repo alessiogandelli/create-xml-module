@@ -24,8 +24,8 @@ export async function validatore(xml: string, numero: string, xsdPath: string = 
 
 
 // Usage
-const xmlPath = 'fatture/fattura73funziona.xml';
-const xml = readFileSync(xmlPath, 'utf8')
-const xsdPath = 'fatture/schema.xsd';
+// const xmlPath = 'fatture/fattura73funziona.xml';
+// const xml = readFileSync(xmlPath, 'utf8')
+// const xsdPath = 'fatture/schema.xsd';
 
-validatore(xml, '73', xsdPath);
+// validatore(xml, '73', xsdPath);
