@@ -29,7 +29,7 @@ export async function UploadStart() {
     name = res.data.Name
     logger.debug('upload start')
 
-    logger.debug('data',res.data)
+
 }
 
 
@@ -105,9 +105,9 @@ export async function UploadStop() {
         return
     }
 
-    //let res = (await get(urluploadStop+name))
+    let res = (await get(urluploadStop+name))
     logger.info('upload stop')
-   // return res
+    return res
 }
 
 
