@@ -13,7 +13,8 @@ const apiKey = process.env.FATTURA_PA_API_KEY
 // url per le chiamate
 const urlVerify = `https://api.fatturapa.com/ws/V10.svc/rest/verify/${apiKey}`; // Replace 'yourdomain.com' with the actual domain
 const urluploadStart = `https://api.fatturapa.com/ws/V10.svc/rest/UploadStart/${apiKey}`;
-let urluploadStop = `https://api.fatturapa.com/ws/V10.svc/rest/UploadStop1/${apiKey}/`; // c'è da aggiungere /name sotto 
+let urluploadStop1 = `https://api.fatturapa.com/ws/V10.svc/rest/UploadStop1/${apiKey}/`; // c'è da aggiungere /name sotto 
+let urluploadStop = `https://api.fatturapa.com/ws/V10.svc/rest/UploadStop/${apiKey}/`; // c'è da aggiungere /name sotto 
 
 //load fattura da file e carica xml in buffer
 //const fattXml =  fs.readFileSync('fatture/fattura36funziona.xml', 'utf8')
@@ -32,7 +33,7 @@ export async function UploadStart() {
 
 
 
-export async function uploadFileAPI( fattXml: string) {
+export async function uploadFileAPI( fattXml: string, inviaUpload: boolean = false) {
 
 
     const blob = Buffer.from(fattXml, 'utf-8');
@@ -56,7 +57,7 @@ export async function uploadFileAPI( fattXml: string) {
 
     logger.debug('uri',uri)
 
-    axios.put(uri, blob, {
+    await axios.put(uri, blob, {
         headers: headers
     }).then((response) => {
         logger.debug('data',response.data);
@@ -68,7 +69,12 @@ export async function uploadFileAPI( fattXml: string) {
     });
 
     try {
-        await UploadStop1()
+        if (inviaUpload) {
+            await UploadStop()
+        }else {
+            await UploadStop1()
+        }
+        
     }
     catch (error : any) {
         logger.error('error in upload stop')
@@ -77,15 +83,28 @@ export async function uploadFileAPI( fattXml: string) {
 
 }
 
+// questa non invia la fattura all aagenzia delle entrate ma solo a fattura pa 
 export async function UploadStop1() {
     if( name === '' ){
         logger.error('name non impostato')
         return
     }
 
-    let res = (await get(urluploadStop+name))
-    logger.info('upload stop')
+    let res = (await get(urluploadStop1+name))
+    logger.info('upload stop1')
     return res
+}
+
+//questa invia direttamente la fattura all'agenzia delle entrate
+export async function UploadStop() {
+    if( name === '' ){
+        logger.error('name non impostato')
+        return
+    }
+
+    //let res = (await get(urluploadStop+name))
+    logger.info('upload stop')
+   // return res
 }
 
 

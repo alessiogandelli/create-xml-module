@@ -6,13 +6,13 @@ import axios, { AxiosRequestConfig } from 'axios'
 var lodash = require('lodash');
 const {Storage} = require('@google-cloud/storage');
 const storage = new Storage();
-import {uploadFileAPI, UploadStop1, UploadStart} from './inviaFattura'
+import {uploadFileAPI,  UploadStart} from './inviaFattura'
 //import { validatore } from './validate'
 import logger from  'euberlog'
 
 
 
-export default async function main(inizio:number, fine:number, urlfatture:string, urlmovimenti:string, urlclienti:string, urldettaglio:string,urllistino:string, prestatore:Prestatore, ninoxToken:string, local: boolean, GCLOUD_STORAGE_BUCKET: string) {
+export default async function main(inizio:number, fine:number, urlfatture:string, urlmovimenti:string, urlclienti:string, urldettaglio:string,urllistino:string, prestatore:Prestatore, ninoxToken:string, local: boolean, GCLOUD_STORAGE_BUCKET: string, inviaUpload = false) {
 
     console.log(`?sinceId=${inizio-1}&perPage=${fine-inizio+1}`)
     console.log('ertoken',ninoxToken)
@@ -51,7 +51,7 @@ export default async function main(inizio:number, fine:number, urlfatture:string
                     //const isvalid = await validatore(xml.toString(), fattura.numero)
                    
                     logger.info('salvo il file localmente ' )
-                    await uploadFileAPI(xml.toString())
+                    await uploadFileAPI(xml.toString(), inviaUpload)
                         
 
                 
@@ -59,7 +59,7 @@ export default async function main(inizio:number, fine:number, urlfatture:string
                    // await saveFileOnBucket(xml, fattura.numero, GCLOUD_STORAGE_BUCKET)
                     try{
                  
-                        uploadFileAPI(xml.toString())
+                        uploadFileAPI(xml.toString(), inviaUpload)
 
                         
                         
@@ -80,8 +80,6 @@ export default async function main(inizio:number, fine:number, urlfatture:string
     
 
 }
-
-
 
 function fillFattura(fatture: any, nFattura: number): Fattura | undefined {
 
@@ -452,7 +450,7 @@ function buildxml(fattura:Fattura, dettaglio:Dettaglio[], committente:Committent
                                         
                                         xml = xml.ele('CodiceDestinatario').text(committente.sdi).up().up()
                                     }
-    //prestatore                                
+        //prestatore                                
                            xml = xml.ele('CedentePrestatore')
                                     .ele('DatiAnagrafici')
                                         .ele('IdFiscaleIVA')
@@ -558,7 +556,7 @@ function buildxml(fattura:Fattura, dettaglio:Dettaglio[], committente:Committent
                                         xml = xml.up()
 
 
-// pagamento  
+    // pagamento  
                                 xml = xml.ele('DatiPagamento')
                                             .ele('CondizioniPagamento').text(pagamento.condizioni).up()
                                         
