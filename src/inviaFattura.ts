@@ -29,6 +29,7 @@ export async function UploadStart() {
     name = res.data.Name
     logger.debug('upload start')
 
+    logger.debug('data',res.data)
 }
 
 
@@ -70,14 +71,16 @@ export async function uploadFileAPI( fattXml: string, inviaUpload: boolean = fal
 
     try {
         if (inviaUpload) {
+            logger.debug('invia upload diretto ')
             await UploadStop()
         }else {
+            logger.debug('invia upload stop1')
             await UploadStop1()
         }
         
     }
     catch (error : any) {
-        logger.error('error in upload stop')
+        logger.error('error in upload stop', error.message)
     }
 
 
