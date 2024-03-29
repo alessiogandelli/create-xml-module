@@ -26,6 +26,7 @@ export interface DettPagam{
 export interface Pagamento{
     condizioni: string;
     dettaglio: Array<DettPagam>
+    IBAN?: string;
 }
 
 export interface Committente{

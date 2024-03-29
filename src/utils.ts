@@ -12,7 +12,7 @@ import logger from 'euberlog'
 
 
 
-export default async function main(inizio: number, fine: number, urlfatture: string, urlmovimenti: string, urlclienti: string, urldettaglio: string, urllistino: string, prestatore: Prestatore, ninoxToken: string, local: boolean, GCLOUD_STORAGE_BUCKET: string, inviaUpload = false) {
+export default async function main(inizio: number, fine: number, urlfatture: string, urlmovimenti: string, urlclienti: string, urldettaglio: string, urllistino: string, urlPrestatore: string, ninoxToken: string, local: boolean, GCLOUD_STORAGE_BUCKET: string, inviaUpload = false) {
 
     console.log(`?sinceId=${inizio - 1}&perPage=${fine - inizio + 1}`)
     console.log('ertoken', ninoxToken)
@@ -30,6 +30,8 @@ export default async function main(inizio: number, fine: number, urlfatture: str
             if (fattura) {
                 logger.info('fattura', fattura.numero)
 
+                let prestatore:Prestatore = await fillPrestatore(urlPrestatore, ninoxToken)
+                console.log('prestatore', prestatore)
                 let persona: Committente = await fillPersona(fatture, i, urlclienti, ninoxToken);
                 let dettaglio: Dettaglio[] = await fillDettaglio(fatture, i, urldettaglio, urllistino, ninoxToken);
 
@@ -46,7 +48,7 @@ export default async function main(inizio: number, fine: number, urlfatture: str
                 let xml = buildxml(fattura, dettaglio, persona, prestatore, pagamento, i);
                 //const isvalid = await validatore(xml.toString(), fattura.numero)
 
-                await uploadFileAPI(xml.toString(), inviaUpload)
+                //await uploadFileAPI(xml.toString(), inviaUpload)
 
                 if (local) {
                     await saveFileLocal(xml, fattura.numero)
@@ -102,6 +104,36 @@ function fillFattura(fatture: any, nFattura: number): Fattura | undefined {
     }
 
     return fattura
+}
+
+
+async function fillPrestatore(urlPrestatore: string, ninoxToken: string) {
+    
+        let prestatoreRaw: any = await get(urlPrestatore, ninoxToken)
+        prestatoreRaw = prestatoreRaw['data'][0]['fields']
+
+
+        const prestatore: Prestatore = {
+            idPaese: prestatoreRaw['idPaese'],
+            idcodice: prestatoreRaw['idcodice'],
+            progressivoInvio: prestatoreRaw['progressivoInvio'],
+            formatotrasmissione: prestatoreRaw['formatotrasmissione'],
+            codicedestinatario: prestatoreRaw['codicedestinatario'],
+            denominazione:prestatoreRaw['denominazione'],
+            regimefiscale: prestatoreRaw['regimefiscale'],
+            indirizzocp:prestatoreRaw['indirizzocp'],
+            capcp: prestatoreRaw['capcp'],
+            comunecp:prestatoreRaw['comunecp'],
+            provinciacp: prestatoreRaw['provinciacp'],
+            nazionecp:prestatoreRaw['nazionecp'],
+            ufficio: prestatoreRaw['ufficio'],
+            statoliquidazione: prestatoreRaw['statoliquidazione'],
+            numeroREA: prestatoreRaw['numeroREA'],
+            IBAN: prestatoreRaw['IBAN'],
+        }
+
+        return prestatore
+
 }
 
 async function fillPersona(fatture: any, nFattura: number, urlclienti: string, ninoxToken: string): Promise<Committente> {
@@ -358,30 +390,32 @@ function getTotale(imposta: Imposta, imponibile: Imponibile): string {
 // "Modalità di pagamento" sempre dalla fattura 
 async function fillPagamento(fattura: Fattura, urlmovimenti: string, ninoxToken: string) {
 
-    let pagamento: Pagamento = { condizioni: '', dettaglio: [{ modalita: '', scadenza: '', importo: 0 }] }
+    let pagamento: Pagamento = { condizioni: '', dettaglio: [{ modalita: '', scadenza: '', importo: 0 }]}
 
     console.log('fattura pagamento', fattura.modalitaPagamento)
 
     if (fattura.movimenti && fattura.modalitaPagamento) {
 
-
+        let IBAN = undefined
         const promises = fattura.movimenti.map((el) => (new Promise<{ dettaglio: DettPagam, condizioni: string }>(async (res, rej) => {
             const movimento: any = await get(urlmovimenti + el, ninoxToken)
             const mov: any = movimento.data.fields
+            
             res({
                 dettaglio: { modalita: (fattura['modalitaPagamento'] as string).substring(0, 4), scadenza: mov['DATA MOVIMENTO'] as string, importo: mov['ENTRATA'] },
-                condizioni: fattura['condizioniPagamento']
+                condizioni: fattura['condizioniPagamento'],
             });
         })));
 
         const res = await Promise.all(promises);
 
-        //console.log('res', res)
+        //console.log('res', IBAN)
 
 
         pagamento = {
             condizioni: res[0].condizioni.substring(0, 4),
-            dettaglio: res.map(x => x.dettaglio)
+            dettaglio: res.map(x => x.dettaglio),
+        
         }
     } else {
         console.error('mancano i dettagli del pagamento')
