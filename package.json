@@ -1,6 +1,6 @@
 {
   "name": "create_xml_module",
-  "version": "1.4.15",
+  "version": "1.5.0",
   "description": "",
   "main": "dist/utils.js",
   "types": "dist/utils.d.ts",
